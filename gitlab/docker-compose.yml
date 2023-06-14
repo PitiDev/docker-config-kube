@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  gitlab:
+    image: 'gitlab/gitlab-ce:12.5.5-ce.0'
+    restart: always
+    hostname: 'localhost'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.pitidev.com'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['registry_enabled'] = true
+        registry_external_url 'https://gitlab.pitidev.com:5005'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '2222:22'
+      - '5005:5005'
+    volumes:
+      - './config:/etc/gitlab'
+      - './logs:/var/log/gitlab'
+      - './data:/var/opt/gitlab'
+      - './registry:/var/opt/gitlab/gitlab-rails/shared/registry'
+      - './certs:/etc/letsencrypt'
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - './certs:/etc/letsencrypt'
+    command: certonly --webroot --webroot-path=/var/www/html --email pitidev.laol@gmail.com --agree-tos --no-eff-email --force-renewal -d gitlab.pitidev.com
